@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bag-Back Lucky Draw</title>
+  <style>
+    :root {
+      --bg: #f6efff;
+      --bg2: #fff9fd;
+      --purple: #7b5cff;
+      --deep: #423060;
+      --pink: #ff8fc7;
+      --mint: #92e6d5;
+      --yellow: #ffe58a;
+      --blue: #a8c7ff;
+      --card: rgba(255,255,255,.86);
+      --line: rgba(83,61,116,.14);
+      --shadow: 0 18px 45px rgba(70, 42, 110, .14);
+      --radius: 30px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; font-family: ui-rounded, "Apple SD Gothic Neo", "Pretendard", system-ui, -apple-system, BlinkMacSystemFont, sans-serif; color: var(--deep); }
+    body {
+      background:
+        radial-gradient(circle at 18% 12%, rgba(255,143,199,.28), transparent 28%),
+        radial-gradient(circle at 82% 18%, rgba(146,230,213,.25), transparent 26%),
+        radial-gradient(circle at 50% 85%, rgba(168,199,255,.22), transparent 30%),
+        linear-gradient(145deg, var(--bg), var(--bg2));
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; }
+    button, input, select { font: inherit; }
+    .app { min-height: 100vh; padding: 24px; display: flex; align-items: center; justify-content: center; }
+    .shell { width: min(1120px, 100%); }
+    .topbar {
+      display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 1000; letter-spacing: -.02em; }
+    .logo {
+      width: 42px; height: 42px; border-radius: 15px;
+      background: linear-gradient(135deg, var(--purple), var(--pink));
+      box-shadow: var(--shadow); display: grid; place-items: center; color: #fff;
+    }
+    .adminQuick { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+
+    .chipBtn {
+      border: 1px solid var(--line); background: rgba(255,255,255,.72); color: var(--deep);
+      padding: 10px 14px; border-radius: 999px; cursor: pointer; transition: .2s; font-weight: 850;
+    }
+    .chipBtn.active, .chipBtn:hover { background: var(--deep); color: #fff; border-color: var(--deep); }
+
+    .card {
+      background: var(--card); border: 1px solid rgba(255,255,255,.75); border-radius: var(--radius);
+      box-shadow: var(--shadow); backdrop-filter: blur(16px); padding: clamp(20px, 4vw, 44px);
+    }
+    .hero { display: grid; grid-template-columns: .92fr 1.08fr; gap: 30px; align-items: center; }
+    @media (max-width: 900px) { .hero { grid-template-columns: 1fr; } .app { padding: 14px; } .topbar { align-items: flex-start; } }
+
+    h1 { font-size: clamp(42px, 8vw, 88px); line-height: .92; margin: 0 0 18px; letter-spacing: -.07em; }
+    h2 { font-size: clamp(26px, 4vw, 42px); line-height: 1.05; margin: 0 0 14px; letter-spacing: -.045em; }
+    h3 { margin: 0 0 10px; font-size: 18px; }
+    p { line-height: 1.7; margin: 0 0 16px; }
+    .muted { color: rgba(66,48,96,.68); }
+    .small { font-size: 13px; line-height: 1.55; }
+    .bigCopy { font-size: 18px; max-width: 600px; }
+
+    .btn {
+      border: 0; border-radius: 18px; padding: 15px 20px; font-weight: 1000; cursor: pointer;
+      background: var(--deep); color: #fff; box-shadow: 0 12px 26px rgba(66,48,96,.18); transition: transform .15s, filter .15s, opacity .15s;
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none;
+    }
+    .btn:hover { transform: translateY(-1px); filter: brightness(1.04); }
+    .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+    .btn.secondary { background: #fff; color: var(--deep); border: 1px solid var(--line); box-shadow: none; }
+    .btn.pink { background: linear-gradient(135deg, var(--pink), var(--purple)); }
+    .btn.mint { background: linear-gradient(135deg, #58ccb8, var(--purple)); }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .field { display: grid; gap: 8px; margin: 12px 0; }
+    label { font-weight: 900; }
+    input, select {
+      width: 100%; border: 1px solid var(--line); background: rgba(255,255,255,.94); border-radius: 16px;
+      padding: 14px 15px; outline: none; color: var(--deep);
+    }
+    input:focus { border-color: rgba(123,92,255,.55); box-shadow: 0 0 0 4px rgba(123,92,255,.12); }
+
+    .characterStage {
+      min-height: 560px; position: relative; display: grid; align-items: end; overflow: visible;
+      border-radius: 34px; background: linear-gradient(180deg, rgba(255,255,255,.36), rgba(255,255,255,.12));
+      border: 1px solid rgba(255,255,255,.5); padding: 34px 16px 20px;
+    }
+    .characterGrid {
+      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; align-items: end; position: relative; z-index: 2;
+    }
+    .charCard {
+      min-height: 430px; border-radius: 30px; padding: 12px 10px 18px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+      background: rgba(255,255,255,.42); border: 1px solid rgba(255,255,255,.55); overflow: visible; position: relative;
+    }
+    .charCard:nth-child(1) { transform: rotate(-2deg); }
+    .charCard:nth-child(2) { transform: translateY(-16px); }
+    .charCard:nth-child(3) { transform: rotate(2deg); }
+    .charImg { width: 126%; max-width: 260px; height: auto; object-fit: contain; filter: drop-shadow(0 22px 20px rgba(66,48,96,.18)); }
+    .charName {
+      font-weight: 1000; letter-spacing: -.045em; font-size: clamp(11px, 1.55vw, 20px);
+      background: #fff; border-radius: 999px; padding: 9px 12px; margin-top: -2px;
+      white-space: nowrap; max-width: none; text-align: center; box-shadow: 0 8px 18px rgba(66,48,96,.08);
+    }
+    .bubble { position: absolute; border-radius: 999px; opacity: .75; animation: float 6s ease-in-out infinite; }
+    .b1 { width: 100px; height: 100px; background: rgba(255,229,138,.65); left: 8%; top: 8%; }
+    .b2 { width: 70px; height: 70px; background: rgba(146,230,213,.72); right: 10%; top: 14%; animation-delay: -1.4s; }
+    .b3 { width: 52px; height: 52px; background: rgba(255,143,199,.55); left: 50%; bottom: 10%; animation-delay: -3s; }
+    @keyframes float { 0%,100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-14px) rotate(6deg); } }
+    @media (max-width: 600px) {
+      .characterStage { min-height: 360px; padding: 22px 7px 14px; overflow: visible; }
+      .characterGrid { gap: 5px; }
+      .charCard { min-height: 270px; border-radius: 22px; padding: 7px 4px 12px; }
+      .charImg { width: 135%; max-width: 170px; }
+      .charName { font-size: 9.5px; padding: 6px 6px; letter-spacing: -.06em; }
+    }
+
+    .notice { padding: 14px 16px; border-radius: 18px; background: rgba(123,92,255,.1); border: 1px solid rgba(123,92,255,.14); }
+    .error { background: rgba(255,70,120,.1); border-color: rgba(255,70,120,.16); }
+    .success { background: rgba(55,190,150,.12); border-color: rgba(55,190,150,.18); }
+    .warn { background: rgba(255,213,90,.18); border-color: rgba(255,213,90,.22); }
+
+    .checkList { display: grid; gap: 9px; margin: 14px 0; }
+    .checkItem { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 16px; background: rgba(255,255,255,.72); border: 1px solid var(--line); }
+    .checkMark { font-weight: 1000; border-radius: 999px; padding: 5px 9px; font-size: 12px; }
+    .checkMark.ok { background: rgba(55,190,150,.14); color: #16846d; }
+    .checkMark.no { background: rgba(255,70,120,.1); color: #c42d63; }
+
+    .drawGrid { display: grid; grid-template-columns: 1fr .82fr; gap: 24px; align-items: center; }
+    @media (max-width: 850px) { .drawGrid { grid-template-columns: 1fr; } }
+
+    .wheelWrap { position: relative; display: grid; place-items: center; min-height: 390px; }
+    .pointer {
+      position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 3;
+      width: 0; height: 0; border-left: 17px solid transparent; border-right: 17px solid transparent; border-top: 34px solid var(--deep);
+      filter: drop-shadow(0 8px 8px rgba(66,48,96,.18));
+    }
+    .wheel {
+      width: min(350px, 82vw); height: min(350px, 82vw); border-radius: 50%; position: relative;
+      box-shadow: inset 0 0 0 12px rgba(255,255,255,.88), inset 0 0 0 15px rgba(66,48,96,.08), 0 28px 65px rgba(66,48,96,.18);
+      transition: transform 4.2s cubic-bezier(.12,.72,.08,1);
+      overflow: hidden;
+      background: #fff;
+    }
+    .wheel svg { width: 100%; height: 100%; display: block; border-radius: 50%; }
+    .wheelLabelSvg {
+      font-family: "Apple SD Gothic Neo", "Pretendard", system-ui, sans-serif;
+      font-size: 7.7px;
+      font-weight: 900;
+      fill: #423060;
+      paint-order: stroke;
+      stroke: rgba(255,255,255,.88);
+      stroke-width: 2.6px;
+      stroke-linejoin: round;
+      text-anchor: middle;
+      dominant-baseline: middle;
+      letter-spacing: -0.4px;
+    }
+    .wheel:after {
+      content:""; position:absolute; width: 92px; height: 92px; border-radius: 50%; background:#fff; left:50%; top:50%; transform:translate(-50%,-50%);
+      box-shadow: 0 8px 20px rgba(66,48,96,.16); z-index: 2;
+    }
+    .wheelCenter {
+      position:absolute; left:50%; top:50%; transform: translate(-50%,-50%); z-index: 4; font-weight: 1000; font-size: 18px; letter-spacing: -.05em; text-align:center;
+    }
+
+    .resultBox { text-align: center; padding: 24px; border-radius: 24px; background: rgba(255,255,255,.65); border: 1px solid var(--line); }
+    .resultCode { font-size: 24px; font-weight: 1000; letter-spacing: .02em; padding: 12px 14px; border-radius: 18px; background: var(--deep); color: #fff; display: inline-block; margin: 8px 0; }
+
+    .adminLayout { display: grid; grid-template-columns: 230px 1fr; gap: 16px; align-items: start; }
+    @media (max-width: 900px) { .adminLayout { grid-template-columns: 1fr; } }
+    .sideNav { display: grid; gap: 8px; }
+    .sideNav .chipBtn { text-align: left; border-radius: 16px; justify-content: flex-start; }
+    .adminPanel { min-height: 560px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 12px 10px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+    th { font-size: 13px; color: rgba(66,48,96,.68); }
+    .tableWrap { overflow-x: auto; }
+    .pill { display:inline-flex; padding: 6px 10px; border-radius:999px; background: rgba(123,92,255,.12); font-size: 12px; font-weight: 900; white-space: nowrap; }
+    .pill.pending { background: rgba(255,196,87,.2); }
+    .pill.approved { background: rgba(55,190,150,.16); }
+    .pill.rejected { background: rgba(255,70,120,.12); }
+    .miniBtn {
+      border: 1px solid var(--line); background:#fff; border-radius: 12px; padding: 8px 10px; font-weight: 900; cursor:pointer; text-decoration:none; display:inline-flex;
+    }
+    .miniBtn.good { background: #edfff9; color: #16846d; }
+    .miniBtn.danger { background: #fff0f5; color: #c42d63; }
+    .inventoryGrid { display:grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin: 18px 0; }
+    @media (max-width: 980px) { .inventoryGrid { grid-template-columns: repeat(2, 1fr); } }
+    .inventoryCard { border-radius: 22px; background: rgba(255,255,255,.72); border: 1px solid var(--line); padding: 16px; }
+    .inventoryCard strong { display:block; font-size: clamp(25px, 4vw, 38px); letter-spacing: -.05em; }
+    .progress { height: 10px; border-radius: 999px; overflow: hidden; background: rgba(66,48,96,.1); margin-top: 10px; }
+    .bar { height: 100%; background: linear-gradient(90deg, var(--purple), var(--pink)); border-radius: 999px; }
+    .footerNote { margin-top: 14px; text-align: center; color: rgba(66,48,96,.58); }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <main class="shell">
+      <div class="topbar">
+        <div class="brand">
+          <div class="logo">BB</div>
+          <div>Bag-Back Lucky Draw</div>
+        </div>
+        <div class="adminQuick">
+          <button class="chipBtn" id="visitorModeBtn">관람자 화면</button>
+          <button class="chipBtn active" id="adminModeBtn">직원 관리자</button>
+        </div>
+      </div>
+
+      <section id="visitorView" class="card hero"></section>
+      <section id="adminView" class="card hidden"></section>
+
+      <div class="footerNote small">
+        본 이벤트는 Dimension / Bag-Back 전시 운영팀이 진행하며, Instagram이 후원·보증·관리하는 이벤트가 아닙니다.
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const INSTAGRAM_HANDLES = ["bagbackuniverse_official", "cochelab.official"];
+    const ADMIN_PASSWORD = "bagback";
+    const DEFAULT_STAFF_CODE = "BB2026";
+    const STORAGE_KEY = "bagback_lucky_draw_v4";
+    const SESSION_KEY = "bagback_current_participant_v4";
+    const CLICKED_KEY = "bagback_clicked_instagram_v4";
+    const ADMIN_SESSION = "bagback_admin_ok_v4";
+
+    const INVENTORY_TOTALS = {
+      stickerDdaeng: 97,
+      stickerChichi: 97,
+      stickerLungyi: 97,
+      keyring: 497,
+      lipgloss: 50
+    };
+
+    const defaultData = {
+      settings: {
+        instagramHandles: INSTAGRAM_HANDLES,
+        staffCode: DEFAULT_STAFF_CODE,
+        eventOpen: true
+      },
+      prizes: [
+        { id: cryptoId(), name: "DDAENG 스티커+키링 세트", total: 80, remaining: 80, weight: 80, active: true, contents: { stickerDdaeng: 1, keyring: 1 } },
+        { id: cryptoId(), name: "CHICHI 스티커+키링 세트", total: 79, remaining: 79, weight: 79, active: true, contents: { stickerChichi: 1, keyring: 1 } },
+        { id: cryptoId(), name: "LUNGYI_LUNGYI 스티커+키링 세트", total: 79, remaining: 79, weight: 79, active: true, contents: { stickerLungyi: 1, keyring: 1 } },
+
+        { id: cryptoId(), name: "DDAENG 스티커", total: 17, remaining: 17, weight: 17, active: true, contents: { stickerDdaeng: 1 } },
+        { id: cryptoId(), name: "CHICHI 스티커", total: 18, remaining: 18, weight: 18, active: true, contents: { stickerChichi: 1 } },
+        { id: cryptoId(), name: "LUNGYI_LUNGYI 스티커", total: 18, remaining: 18, weight: 18, active: true, contents: { stickerLungyi: 1 } },
+
+        { id: cryptoId(), name: "Bag-Back 키링", total: 259, remaining: 259, weight: 259, active: true, contents: { keyring: 1 } },
+        { id: cryptoId(), name: "Coché Lab 립글로즈", total: 50, remaining: 50, weight: 50, active: true, contents: { lipgloss: 1 } }
+      ],
+      participants: [],
+      logs: []
+    };
+
+    let data = loadData();
+    let view = location.hash === "#admin" ? "admin" : "visitor";
+    let visitorStep = "start";
+    let adminTab = "logs";
+    let currentRotation = 0;
+    let spinning = false;
+
+    function cryptoId() {
+      if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+      return "id_" + Math.random().toString(36).slice(2) + Date.now();
+    }
+
+    function stripAt(v) { return (v || "").trim().replace(/^@+/, "").replace(/\s/g, ""); }
+    function normalizeIg(v) { return stripAt(v).toLowerCase(); }
+
+    function loadData() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        const fresh = structuredClone(defaultData);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh));
+        return fresh;
+      }
+      try {
+        const parsed = JSON.parse(raw);
+        if (!parsed.settings) parsed.settings = structuredClone(defaultData.settings);
+        if (!Array.isArray(parsed.settings.instagramHandles)) parsed.settings.instagramHandles = INSTAGRAM_HANDLES;
+        if (!parsed.settings.staffCode) parsed.settings.staffCode = DEFAULT_STAFF_CODE;
+        if (!Array.isArray(parsed.prizes)) parsed.prizes = structuredClone(defaultData.prizes);
+        if (!Array.isArray(parsed.participants)) parsed.participants = [];
+        if (!Array.isArray(parsed.logs)) parsed.logs = [];
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+        return parsed;
+      } catch {
+        const fresh = structuredClone(defaultData);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(fresh));
+        return fresh;
+      }
+    }
+
+    function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
+
+    function getClickedHandles() {
+      try { return JSON.parse(sessionStorage.getItem(CLICKED_KEY) || "[]"); }
+      catch { return []; }
+    }
+
+    window.recordInstagramClick = function(handle) {
+      const h = stripAt(handle);
+      const arr = getClickedHandles();
+      if (!arr.includes(h)) arr.push(h);
+      sessionStorage.setItem(CLICKED_KEY, JSON.stringify(arr));
+      const p = getCurrentParticipant();
+      if (p) {
+        p.clickedHandles = Array.from(new Set([...(p.clickedHandles || []), h]));
+        saveData();
+      }
+    }
+
+    function formatTime(iso) {
+      if (!iso) return "-";
+      const d = new Date(iso);
+      return d.toLocaleString("ko-KR", { month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit" });
+    }
+
+    function getCurrentParticipant() {
+      const id = sessionStorage.getItem(SESSION_KEY);
+      return data.participants.find(p => p.id === id);
+    }
+
+    function setCurrentParticipant(id) { sessionStorage.setItem(SESSION_KEY, id); }
+
+    function findParticipantByInstagram(ig) {
+      const norm = normalizeIg(ig);
+      return data.participants.find(p => normalizeIg(p.instagram) === norm);
+    }
+
+    function setMode(next) {
+      view = next;
+      if (next === "admin") {
+        if (location.hash !== "#admin") location.hash = "admin";
+        document.body.classList.add("admin");
+      } else {
+        history.replaceState("", document.title, location.pathname + location.search);
+        document.body.classList.remove("admin");
+      }
+      document.getElementById("visitorModeBtn").classList.toggle("active", next === "visitor");
+      document.getElementById("adminModeBtn").classList.toggle("active", next === "admin");
+      document.getElementById("visitorView").classList.toggle("hidden", next !== "visitor");
+      document.getElementById("adminView").classList.toggle("hidden", next !== "admin");
+      render();
+    }
+
+    document.getElementById("visitorModeBtn").addEventListener("click", () => setMode("visitor"));
+    document.getElementById("adminModeBtn").addEventListener("click", () => setMode("admin"));
+
+    window.addEventListener("hashchange", () => {
+      view = location.hash === "#admin" ? "admin" : "visitor";
+      document.body.classList.toggle("admin", view === "admin");
+      render();
+    });
+
+    function render() {
+      data = loadData();
+      document.body.classList.toggle("admin", view === "admin");
+      document.getElementById("visitorModeBtn").classList.toggle("active", view === "visitor");
+      document.getElementById("adminModeBtn").classList.toggle("active", view === "admin");
+      document.getElementById("visitorView").classList.toggle("hidden", view !== "visitor");
+      document.getElementById("adminView").classList.toggle("hidden", view !== "admin");
+      if (view === "visitor") renderVisitor();
+      else renderAdmin();
+    }
+
+    function instagramFollowButtons(className = "btn pink") {
+      const handles = data.settings.instagramHandles || INSTAGRAM_HANDLES;
+      return handles.map(handle => `
+        <a class="${className}" href="https://instagram.com/${stripAt(handle)}" target="_blank" onclick="recordInstagramClick('${stripAt(handle)}')">
+          @${stripAt(handle)}
+        </a>
+      `).join("");
+    }
+
+    function renderClickStatus(participant) {
+      const handles = data.settings.instagramHandles || INSTAGRAM_HANDLES;
+      const clicked = Array.from(new Set([...(getClickedHandles()), ...((participant && participant.clickedHandles) || [])]));
+      return `
+        <div class="checkList">
+          ${handles.map(h => {
+            const ok = clicked.includes(stripAt(h));
+            return `
+              <div class="checkItem">
+                <span>@${escapeHtml(stripAt(h))}</span>
+                <span class="checkMark ${ok ? "ok" : "no"}">${ok ? "링크 열림" : "기록 없음"}</span>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      `;
+    }
+
+    function renderVisitor() {
+      const root = document.getElementById("visitorView");
+      const p = getCurrentParticipant();
+
+      if (!data.settings.eventOpen) {
+        root.className = "card";
+        root.innerHTML = `<h2>Lucky Draw Closed</h2>`;
+        return;
+      }
+
+      if (p?.status === "registered") visitorStep = "staffCode";
+      if (p?.status === "verified") visitorStep = "draw";
+      if (p?.status === "drawn") visitorStep = "result";
+
+      if (visitorStep === "start") {
+        root.className = "card hero";
+        root.innerHTML = `
+          <div>
+            <h1>Lucky<br/>Draw</h1>
+            <p class="bigCopy">Follow us and join the Bag-Back lucky draw.</p>
+            <div class="row">${instagramFollowButtons("btn pink")}</div>
+            <div class="row" style="margin-top:10px;">
+              <button class="btn secondary" id="goInputBtn">완료</button>
+            </div>
+          </div>
+          <div class="characterStage">
+            <div class="bubble b1"></div><div class="bubble b2"></div><div class="bubble b3"></div>
+            <div class="characterGrid">
+              <div class="charCard">
+                <img class="charImg" src="assets/LUNGYI_LUNGYI.png" alt="LUNGYI_LUNGYI" />
+                <div class="charName">LUNGYI_LUNGYI</div>
+              </div>
+              <div class="charCard">
+                <img class="charImg" src="assets/DDAENG.png" alt="DDAENG" />
+                <div class="charName">DDAENG</div>
+              </div>
+              <div class="charCard">
+                <img class="charImg" src="assets/CHICHI.png" alt="CHICHI" />
+                <div class="charName">CHICHI</div>
+              </div>
+            </div>
+          </div>
+        `;
+        document.getElementById("goInputBtn").addEventListener("click", () => { visitorStep = "input"; renderVisitor(); });
+      }
+
+      if (visitorStep === "input") {
+        root.className = "card";
+        root.innerHTML = `
+          <h2>Instagram ID</h2>
+          <div class="field">
+            <input id="igInput" placeholder="@your_id" autocomplete="off" />
+          </div>
+          ${renderClickStatus(null)}
+          <div class="row">
+            <button class="btn mint" id="requestBtn">직원 확인</button>
+            <button class="btn secondary" id="backStartBtn">이전</button>
+          </div>
+          <div id="inputMsg" style="margin-top:14px;"></div>
+        `;
+        document.getElementById("backStartBtn").addEventListener("click", () => { visitorStep = "start"; renderVisitor(); });
+        document.getElementById("requestBtn").addEventListener("click", () => {
+          const ig = stripAt(document.getElementById("igInput").value);
+          const msg = document.getElementById("inputMsg");
+
+          if (!ig || ig.length < 2) {
+            msg.innerHTML = `<div class="notice error">인스타그램 아이디를 입력해주세요.</div>`;
+            return;
+          }
+
+          const existing = findParticipantByInstagram(ig);
+          if (existing) {
+            setCurrentParticipant(existing.id);
+            msg.innerHTML = `<div class="notice warn">이미 등록된 아이디입니다.</div>`;
+            setTimeout(() => render(), 700);
+            return;
+          }
+
+          const participant = {
+            id: cryptoId(),
+            instagram: "@" + ig,
+            status: "registered",
+            clickedHandles: getClickedHandles(),
+            createdAt: new Date().toISOString(),
+            verifiedAt: null,
+            drawnAt: null
+          };
+          data.participants.unshift(participant);
+          saveData();
+          setCurrentParticipant(participant.id);
+          visitorStep = "staffCode";
+          renderVisitor();
+        });
+      }
+
+      if (visitorStep === "staffCode") {
+        const participant = getCurrentParticipant();
+        if (participant) {
+          participant.clickedHandles = Array.from(new Set([...(participant.clickedHandles || []), ...getClickedHandles()]));
+          saveData();
+        }
+        root.className = "card";
+        root.innerHTML = `
+          <h2>직원 확인</h2>
+          <p class="muted"><strong>${escapeHtml(participant?.instagram || "-")}</strong></p>
+          ${renderClickStatus(participant)}
+          <div class="row" style="margin-bottom:8px;">
+            ${instagramFollowButtons("btn secondary")}
+          </div>
+          <div class="field">
+            <input id="staffCodeInput" type="password" placeholder="직원 인증코드" autocomplete="off" />
+          </div>
+          <div class="row">
+            <button class="btn mint" id="verifyBtn">확인 완료</button>
+            <button class="btn secondary" id="changeIdBtn">아이디 수정</button>
+          </div>
+          <div id="codeMsg" style="margin-top:14px;"></div>
+        `;
+        document.getElementById("changeIdBtn").addEventListener("click", () => {
+          sessionStorage.removeItem(SESSION_KEY);
+          visitorStep = "input";
+          renderVisitor();
+        });
+        document.getElementById("verifyBtn").addEventListener("click", () => {
+          const code = document.getElementById("staffCodeInput").value.trim();
+          const msg = document.getElementById("codeMsg");
+          data = loadData();
+          const participant = getCurrentParticipant();
+          if (!participant) {
+            msg.innerHTML = `<div class="notice error">처음부터 다시 진행해주세요.</div>`;
+            return;
+          }
+          if (participant.status === "drawn") {
+            render();
+            return;
+          }
+          if (code !== data.settings.staffCode) {
+            msg.innerHTML = `<div class="notice error">인증코드가 맞지 않습니다.</div>`;
+            return;
+          }
+          participant.status = "verified";
+          participant.verifiedAt = new Date().toISOString();
+          participant.clickedHandles = Array.from(new Set([...(participant.clickedHandles || []), ...getClickedHandles()]));
+          saveData();
+          visitorStep = "draw";
+          renderVisitor();
+        });
+      }
+
+      if (visitorStep === "draw") {
+        const available = getAvailablePrizes();
+        root.className = "card";
+        root.innerHTML = `
+          <div class="drawGrid">
+            <div class="wheelWrap">
+              <div class="pointer"></div>
+              <div id="wheel" class="wheel"></div>
+              <div class="wheelCenter">BAG<br/>BACK</div>
+            </div>
+            <div>
+              <h2>Ready!</h2>
+              <button class="btn pink" id="spinBtn" style="margin-top:18px; width:100%;">룰렛 돌리기</button>
+            </div>
+          </div>
+        `;
+        paintWheel(available);
+        document.getElementById("spinBtn").addEventListener("click", spinRoulette);
+      }
+
+      if (visitorStep === "result") {
+        const log = data.logs.find(l => l.participantId === p?.id) || data.logs.find(l => normalizeIg(l.instagram) === normalizeIg(p?.instagram));
+        const prize = data.prizes.find(pr => pr.id === log?.prizeId);
+        root.className = "card";
+        root.innerHTML = `
+          <div class="resultBox">
+            <h2>Result</h2>
+            <h1 style="font-size:clamp(32px,6vw,58px); margin: 16px 0;">${escapeHtml(prize?.name || log?.prizeName || "결과 없음")}</h1>
+            <div class="resultCode">${escapeHtml(log?.resultCode || "-")}</div>
+            <p>직원에게 보여주세요.</p>
+            <div class="notice small ${log?.claimed ? 'success' : ''}">
+              ${log?.claimed ? "수령 완료" : "수령 전"}
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function getAvailablePrizes() {
+      return data.prizes.filter(p => p.active && p.weight > 0 && p.remaining > 0);
+    }
+
+    function polarToCartesian(cx, cy, r, angleDeg) {
+      const angleRad = (angleDeg - 90) * Math.PI / 180.0;
+      return {
+        x: cx + (r * Math.cos(angleRad)),
+        y: cy + (r * Math.sin(angleRad))
+      };
+    }
+
+    function describeArcSlice(cx, cy, r, startAngle, endAngle) {
+      const start = polarToCartesian(cx, cy, r, endAngle);
+      const end = polarToCartesian(cx, cy, r, startAngle);
+      const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+      return [
+        "M", cx, cy,
+        "L", start.x, start.y,
+        "A", r, r, 0, largeArcFlag, 0, end.x, end.y,
+        "Z"
+      ].join(" ");
+    }
+
+    function wheelShortLabel(name) {
+      return String(name)
+        .replace("LUNGYI_LUNGYI", "LUNGYI")
+        .replace("Coché Lab ", "")
+        .replace("Bag-Back ", "")
+        .replace("스티커+키링 세트", "스티커+키링")
+        .replace("립글로즈", "립글로즈")
+        .trim();
+    }
+
+    function paintWheel(prizes) {
+      const wheel = document.getElementById("wheel");
+      if (!wheel || !prizes.length) return;
+      const colors = ["#ff8fc7", "#ffe58a", "#92e6d5", "#a8c7ff", "#d2b6ff", "#ffd1e8", "#b9f5c8", "#ffc7a8"];
+      const step = 360 / prizes.length;
+      const cx = 100, cy = 100, r = 98;
+      const parts = [];
+
+      prizes.forEach((prize, i) => {
+        const start = i * step;
+        const end = (i + 1) * step;
+        const mid = start + step / 2;
+        const path = describeArcSlice(cx, cy, r, start, end);
+        const labelPoint = polarToCartesian(cx, cy, 63, mid);
+        let rotation = mid;
+        if (rotation > 90 && rotation < 270) rotation += 180;
+        const label = wheelShortLabel(prize.name);
+        const lines = label.includes("+") ? label.split("+") : [label];
+
+        parts.push(`<path d="${path}" fill="${colors[i % colors.length]}" stroke="rgba(255,255,255,.72)" stroke-width="1.2"></path>`);
+        parts.push(`
+          <text class="wheelLabelSvg" x="${labelPoint.x}" y="${labelPoint.y}" transform="rotate(${rotation}, ${labelPoint.x}, ${labelPoint.y})">
+            ${lines.map((line, idx) => `<tspan x="${labelPoint.x}" dy="${idx === 0 ? (lines.length > 1 ? -3.6 : 0) : 8.2}">${escapeHtml(line)}</tspan>`).join("")}
+          </text>
+        `);
+      });
+
+      wheel.innerHTML = `<svg viewBox="0 0 200 200" aria-label="Lucky draw wheel">${parts.join("")}</svg>`;
+    }
+
+    function choosePrize(prizes) {
+      const weighted = prizes.map(p => ({...p, drawWeight: Math.max(1, Number(p.weight || 0)) * Math.max(1, Number(p.remaining || 1)) }));
+      const total = weighted.reduce((sum, p) => sum + p.drawWeight, 0);
+      let r = Math.random() * total;
+      for (const p of weighted) {
+        r -= p.drawWeight;
+        if (r <= 0) return prizes.find(x => x.id === p.id);
+      }
+      return prizes[prizes.length - 1];
+    }
+
+    function spinRoulette() {
+      if (spinning) return;
+      const p = getCurrentParticipant();
+      if (!p || p.status !== "verified") {
+        alert("직원 확인 후 참여할 수 있어요.");
+        return;
+      }
+      const existingLog = data.logs.find(l => normalizeIg(l.instagram) === normalizeIg(p.instagram));
+      if (existingLog) {
+        p.status = "drawn";
+        saveData();
+        visitorStep = "result";
+        render();
+        return;
+      }
+
+      const available = getAvailablePrizes();
+      if (!available.length) {
+        alert("준비된 선물이 모두 소진되었습니다.");
+        return;
+      }
+
+      const prize = choosePrize(available);
+      const selectedIndex = available.findIndex(x => x.id === prize.id);
+      const step = 360 / available.length;
+      const selectedCenter = selectedIndex * step + step / 2;
+      const target = 360 - selectedCenter;
+      currentRotation += 1440 + target + Math.random() * (step * .5) - (step * .25);
+
+      const wheel = document.getElementById("wheel");
+      const btn = document.getElementById("spinBtn");
+      spinning = true;
+      btn.disabled = true;
+      btn.textContent = "돌아가는 중...";
+
+      wheel.style.transform = `rotate(${currentRotation}deg)`;
+
+      setTimeout(() => {
+        data = loadData();
+        const participant = data.participants.find(x => x.id === p.id);
+        const existingLog2 = data.logs.find(l => normalizeIg(l.instagram) === normalizeIg(participant?.instagram));
+        const realPrize = data.prizes.find(x => x.id === prize.id);
+
+        if (existingLog2) {
+          participant.status = "drawn";
+          saveData();
+          spinning = false;
+          visitorStep = "result";
+          render();
+          return;
+        }
+
+        if (!participant || participant.status !== "verified") {
+          spinning = false;
+          render();
+          return;
+        }
+
+        if (!realPrize || !realPrize.active || realPrize.remaining <= 0) {
+          alert("방금 선물이 소진되었습니다. 다시 돌려주세요.");
+          spinning = false;
+          render();
+          return;
+        }
+
+        realPrize.remaining = Math.max(0, Number(realPrize.remaining) - 1);
+        participant.status = "drawn";
+        participant.drawnAt = new Date().toISOString();
+
+        const log = {
+          id: cryptoId(),
+          participantId: participant.id,
+          instagram: participant.instagram,
+          prizeId: realPrize.id,
+          prizeName: realPrize.name,
+          resultCode: "BB-" + Math.floor(1000 + Math.random() * 9000),
+          clickedHandles: participant.clickedHandles || [],
+          claimed: false,
+          createdAt: new Date().toISOString(),
+          claimedAt: null
+        };
+        data.logs.unshift(log);
+        saveData();
+
+        spinning = false;
+        visitorStep = "result";
+        render();
+      }, 4300);
+    }
+
+    function renderAdmin() {
+      const root = document.getElementById("adminView");
+      const ok = sessionStorage.getItem(ADMIN_SESSION) === "1";
+      root.className = "card";
+
+      if (!ok) {
+        root.innerHTML = `
+          <h2>직원 관리자</h2>
+          <div class="field">
+            <input type="password" id="adminPw" placeholder="비밀번호" />
+          </div>
+          <button class="btn" id="adminLoginBtn">로그인</button>
+          <div id="loginMsg" style="margin-top:14px;"></div>
+        `;
+        document.getElementById("adminLoginBtn").addEventListener("click", () => {
+          const pw = document.getElementById("adminPw").value;
+          if (pw === ADMIN_PASSWORD) {
+            sessionStorage.setItem(ADMIN_SESSION, "1");
+            renderAdmin();
+          } else {
+            document.getElementById("loginMsg").innerHTML = `<div class="notice error">비밀번호가 맞지 않습니다.</div>`;
+          }
+        });
+        return;
+      }
+
+      root.innerHTML = `
+        <div class="adminLayout">
+          <aside class="sideNav">
+            <button class="chipBtn ${adminTab === "logs" ? "active" : ""}" data-tab="logs">당첨/수령 내역</button>
+            <button class="chipBtn ${adminTab === "inventory" ? "active" : ""}" data-tab="inventory">남은 선물 현황</button>
+            <button class="chipBtn ${adminTab === "participants" ? "active" : ""}" data-tab="participants">참여자/링크 기록</button>
+            <button class="chipBtn ${adminTab === "prizes" ? "active" : ""}" data-tab="prizes">세트·확률 관리</button>
+            <button class="chipBtn ${adminTab === "settings" ? "active" : ""}" data-tab="settings">운영 설정</button>
+            <button class="chipBtn" id="logoutBtn">로그아웃</button>
+          </aside>
+          <section class="adminPanel" id="adminPanel"></section>
+        </div>
+      `;
+      document.querySelectorAll("[data-tab]").forEach(btn => btn.addEventListener("click", () => {
+        adminTab = btn.dataset.tab;
+        renderAdmin();
+      }));
+      document.getElementById("logoutBtn").addEventListener("click", () => {
+        sessionStorage.removeItem(ADMIN_SESSION);
+        renderAdmin();
+      });
+
+      if (adminTab === "logs") renderLogs();
+      if (adminTab === "inventory") renderInventory();
+      if (adminTab === "participants") renderParticipants();
+      if (adminTab === "prizes") renderPrizes();
+      if (adminTab === "settings") renderSettings();
+    }
+
+    function renderLogs() {
+      const panel = document.getElementById("adminPanel");
+      panel.innerHTML = `
+        <h2>당첨 / 수령 내역</h2>
+        ${data.logs.length ? `
+          <div class="tableWrap">
+            <table>
+              <thead><tr><th>코드</th><th>인스타 아이디</th><th>당첨 선물</th><th>시간</th><th>수령 상태</th><th>처리</th></tr></thead>
+              <tbody>
+                ${data.logs.map(l => `
+                  <tr>
+                    <td><strong>${escapeHtml(l.resultCode)}</strong></td>
+                    <td>${escapeHtml(l.instagram)}</td>
+                    <td>${escapeHtml(l.prizeName)}</td>
+                    <td>${formatTime(l.createdAt)}</td>
+                    <td><span class="pill ${l.claimed ? "approved" : "pending"}">${l.claimed ? "수령 완료" : "수령 전"}</span></td>
+                    <td>
+                      ${l.claimed ? `<button class="miniBtn" onclick="toggleClaim('${l.id}', false)">수령 취소</button>` : `<button class="miniBtn good" onclick="toggleClaim('${l.id}', true)">수령 완료</button>`}
+                    </td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>` : `<div class="notice">아직 당첨 기록이 없습니다.</div>`}
+      `;
+    }
+
+    window.toggleClaim = function(id, claimed) {
+      data = loadData();
+      const l = data.logs.find(x => x.id === id);
+      if (l) {
+        l.claimed = claimed;
+        l.claimedAt = claimed ? new Date().toISOString() : null;
+        saveData();
+      }
+      renderAdmin();
+    }
+
+    function getPhysicalUsage() {
+      const used = { stickerDdaeng: 0, stickerChichi: 0, stickerLungyi: 0, keyring: 0, lipgloss: 0 };
+      for (const log of data.logs) {
+        const prize = data.prizes.find(p => p.id === log.prizeId);
+        const contents = prize?.contents || {};
+        for (const k of Object.keys(used)) used[k] += Number(contents[k] || 0);
+      }
+      return used;
+    }
+
+    function inventoryLabel(key) {
+      return {
+        stickerDdaeng: "DDAENG 스티커",
+        stickerChichi: "CHICHI 스티커",
+        stickerLungyi: "LUNGYI_LUNGYI 스티커",
+        keyring: "키링",
+        lipgloss: "코챌랩 립글로즈"
+      }[key] || key;
+    }
+
+    function renderInventory() {
+      const panel = document.getElementById("adminPanel");
+      const used = getPhysicalUsage();
+      const rows = Object.keys(INVENTORY_TOTALS).map(key => {
+        const total = INVENTORY_TOTALS[key];
+        const remaining = Math.max(0, total - used[key]);
+        const pct = Math.max(0, Math.min(100, (remaining / total) * 100));
+        return { key, total, used: used[key], remaining, pct };
+      });
+      const totalDraws = data.logs.length;
+      const totalRemainingBundles = data.prizes.reduce((s,p) => s + Number(p.remaining || 0), 0);
+
+      panel.innerHTML = `
+        <h2>남은 선물 현황</h2>
+        <div class="inventoryGrid">
+          <div class="inventoryCard"><span class="small muted">총 참여</span><strong>${totalDraws}</strong><span class="small">명</span></div>
+          <div class="inventoryCard"><span class="small muted">남은 당첨권</span><strong>${totalRemainingBundles}</strong><span class="small">개</span></div>
+          <div class="inventoryCard"><span class="small muted">수령 완료</span><strong>${data.logs.filter(l => l.claimed).length}</strong><span class="small">건</span></div>
+          <div class="inventoryCard"><span class="small muted">수령 전</span><strong>${data.logs.filter(l => !l.claimed).length}</strong><span class="small">건</span></div>
+          <div class="inventoryCard"><span class="small muted">상태</span><strong style="font-size:30px;">${data.settings.eventOpen ? "OPEN" : "CLOSED"}</strong></div>
+        </div>
+
+        <h3>실제 굿즈 재고</h3>
+        <div class="tableWrap">
+          <table>
+            <thead><tr><th>굿즈</th><th>전체</th><th>당첨 배정</th><th>남은 수량</th><th>남은 비율</th></tr></thead>
+            <tbody>
+              ${rows.map(r => `
+                <tr>
+                  <td><strong>${inventoryLabel(r.key)}</strong></td>
+                  <td>${r.total}</td>
+                  <td>${r.used}</td>
+                  <td><strong>${r.remaining}</strong></td>
+                  <td><div class="progress"><div class="bar" style="width:${r.pct}%"></div></div></td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+
+        <h3 style="margin-top:26px;">세트별 남은 수량</h3>
+        <div class="tableWrap">
+          <table>
+            <thead><tr><th>세트명</th><th>총 수량</th><th>남은 수량</th><th>상태</th></tr></thead>
+            <tbody>
+              ${data.prizes.map(p => `
+                <tr>
+                  <td>${escapeHtml(p.name)}</td>
+                  <td>${p.total}</td>
+                  <td><strong>${p.remaining}</strong></td>
+                  <td><span class="pill ${p.remaining > 0 && p.active ? "approved" : "rejected"}">${p.remaining > 0 && p.active ? "진행" : "소진/중지"}</span></td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderParticipants() {
+      const panel = document.getElementById("adminPanel");
+      const handles = data.settings.instagramHandles || INSTAGRAM_HANDLES;
+      panel.innerHTML = `
+        <h2>참여자 / 링크 기록</h2>
+        ${data.participants.length ? `
+          <div class="tableWrap">
+            <table>
+              <thead><tr><th>인스타 아이디</th><th>상태</th><th>${escapeHtml(handles[0])}</th><th>${escapeHtml(handles[1])}</th><th>등록 시간</th></tr></thead>
+              <tbody>
+                ${data.participants.map(p => {
+                  const clicked = p.clickedHandles || [];
+                  return `
+                    <tr>
+                      <td><strong>${escapeHtml(p.instagram)}</strong></td>
+                      <td><span class="pill ${p.status === "drawn" ? "approved" : "pending"}">${escapeHtml(p.status)}</span></td>
+                      ${handles.map(h => `<td>${clicked.includes(stripAt(h)) ? "열림" : "기록 없음"}</td>`).join("")}
+                      <td>${formatTime(p.createdAt)}</td>
+                    </tr>
+                  `;
+                }).join("")}
+              </tbody>
+            </table>
+          </div>` : `<div class="notice">아직 참여자가 없습니다.</div>`}
+      `;
+    }
+
+    function renderPrizes() {
+      const panel = document.getElementById("adminPanel");
+      panel.innerHTML = `
+        <h2>세트·확률 관리</h2>
+        <div class="tableWrap">
+          <table>
+            <thead><tr><th>세트명</th><th>총 수량</th><th>남은 수량</th><th>가중치</th><th>상태</th><th>구성</th><th>처리</th></tr></thead>
+            <tbody>
+              ${data.prizes.map(pr => `
+                <tr>
+                  <td><input value="${escapeAttr(pr.name)}" id="name_${pr.id}" /></td>
+                  <td><input type="number" value="${pr.total}" id="total_${pr.id}" /></td>
+                  <td><input type="number" value="${pr.remaining}" id="remaining_${pr.id}" /></td>
+                  <td><input type="number" value="${pr.weight}" id="weight_${pr.id}" /></td>
+                  <td><select id="active_${pr.id}"><option value="true" ${pr.active ? "selected" : ""}>ON</option><option value="false" ${!pr.active ? "selected" : ""}>OFF</option></select></td>
+                  <td class="small">${contentsText(pr.contents)}</td>
+                  <td><button class="miniBtn good" onclick="savePrize('${pr.id}')">저장</button></td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function contentsText(contents = {}) {
+      const names = [];
+      if (contents.stickerDdaeng) names.push("DDAENG 스티커");
+      if (contents.stickerChichi) names.push("CHICHI 스티커");
+      if (contents.stickerLungyi) names.push("LUNGYI 스티커");
+      if (contents.keyring) names.push("키링");
+      if (contents.lipgloss) names.push("립글로즈");
+      return names.join(" + ") || "-";
+    }
+
+    window.savePrize = function(id) {
+      data = loadData();
+      const pr = data.prizes.find(x => x.id === id);
+      if (!pr) return;
+      pr.name = document.getElementById("name_" + id).value.trim() || pr.name;
+      pr.total = Number(document.getElementById("total_" + id).value || 0);
+      pr.remaining = Number(document.getElementById("remaining_" + id).value || 0);
+      pr.weight = Number(document.getElementById("weight_" + id).value || 0);
+      pr.active = document.getElementById("active_" + id).value === "true";
+      saveData();
+      renderAdmin();
+    }
+
+    function renderSettings() {
+      const panel = document.getElementById("adminPanel");
+      panel.innerHTML = `
+        <h2>운영 설정</h2>
+        <div class="field"><label>인스타그램 계정 1</label><input id="handleInput1" value="${escapeAttr((data.settings.instagramHandles || INSTAGRAM_HANDLES)[0])}" /></div>
+        <div class="field"><label>인스타그램 계정 2</label><input id="handleInput2" value="${escapeAttr((data.settings.instagramHandles || INSTAGRAM_HANDLES)[1])}" /></div>
+        <div class="field"><label>직원 인증코드</label><input id="staffCodeInputAdmin" value="${escapeAttr(data.settings.staffCode)}" /></div>
+        <div class="field">
+          <label>이벤트 상태</label>
+          <select id="eventOpenInput">
+            <option value="true" ${data.settings.eventOpen ? "selected" : ""}>열림</option>
+            <option value="false" ${!data.settings.eventOpen ? "selected" : ""}>닫힘</option>
+          </select>
+        </div>
+        <div class="row">
+          <button class="btn mint" id="saveSettingsBtn">설정 저장</button>
+          <button class="btn secondary" id="exportBtn">기록 JSON 다운로드</button>
+          <button class="btn secondary" id="resetSessionBtn">관람자 세션 초기화</button>
+          <button class="btn secondary" id="resetAllBtn">전체 데이터 초기화</button>
+        </div>
+        <div class="notice small" style="margin-top:18px;">
+          관리자 주소: 현재 사이트 주소 뒤에 <strong>#admin</strong>을 붙여 접속합니다.
+        </div>
+      `;
+      document.getElementById("saveSettingsBtn").addEventListener("click", () => {
+        data.settings.instagramHandles = [
+          stripAt(document.getElementById("handleInput1").value) || INSTAGRAM_HANDLES[0],
+          stripAt(document.getElementById("handleInput2").value) || INSTAGRAM_HANDLES[1]
+        ];
+        data.settings.staffCode = document.getElementById("staffCodeInputAdmin").value.trim() || DEFAULT_STAFF_CODE;
+        data.settings.eventOpen = document.getElementById("eventOpenInput").value === "true";
+        saveData();
+        renderAdmin();
+      });
+      document.getElementById("exportBtn").addEventListener("click", () => {
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "bagback-lucky-draw-data.json";
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+      document.getElementById("resetSessionBtn").addEventListener("click", () => {
+        sessionStorage.removeItem(SESSION_KEY);
+        sessionStorage.removeItem(CLICKED_KEY);
+        alert("이 브라우저의 관람자 세션을 초기화했습니다.");
+      });
+      document.getElementById("resetAllBtn").addEventListener("click", () => {
+        if (!confirm("정말 모든 참여자, 당첨 기록, 선물 설정을 초기화할까요?")) return;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(structuredClone(defaultData)));
+        sessionStorage.removeItem(SESSION_KEY);
+        sessionStorage.removeItem(CLICKED_KEY);
+        data = loadData();
+        alert("초기화 완료");
+        renderAdmin();
+      });
+    }
+
+    function escapeHtml(str) {
+      return String(str ?? "").replace(/[&<>"']/g, s => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;" }[s]));
+    }
+    function escapeAttr(str) { return escapeHtml(str).replace(/"/g, "&quot;"); }
+
+    render();
+  </script>
+</body>
+</html>
